@@ -5,6 +5,7 @@ import {
   FieldGroup,
   FieldLabel,
   FieldError,
+  FieldContent,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -19,10 +20,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { generateWorksheet } from "@/lib/generateWorksheet";
+import { Checkbox } from "@/components/ui/checkbox";
 
+import { generateWorksheet } from "@/lib/generateWorksheet";
 import { Question } from "@/lib/types";
 import QuestionCard from "@/components/QuestionCard";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import WorksheetPdf from "@/components/WorsheetPdf";
 
 const METHODS = [
   { label: "Select a method", value: null },
@@ -40,6 +44,8 @@ export default function Home() {
 
   const [showAllAnswer, setShowAllAnswer] = useState(false);
   const [questions, setQuestions] = useState<Question[]>();
+
+  const [worksheetAnswers, setWorksheetAnswers] = useState(false);
 
   const handleSubmit = () => {
     if (!method) {
@@ -127,7 +133,30 @@ export default function Home() {
             <Button onClick={() => setShowAllAnswer(!showAllAnswer)}>
               {showAllAnswer ? "Hide Answers" : "Show Answers"}
             </Button>
-            <Button>Download Worksheet</Button>
+            <Field orientation="horizontal">
+              <Button>
+                <PDFDownloadLink
+                  document={
+                    <WorksheetPdf
+                      questions={questions}
+                      answers={worksheetAnswers}
+                      title={`${method ? method.charAt(0).toUpperCase() + method.slice(1) : ""} Practice`}
+                    />
+                  }
+                  fileName={`${method}-worksheet.pdf`}
+                >
+                  {({ loading }) =>
+                    loading ? "Generating PDF..." : "Download Worksheet"
+                  }
+                </PDFDownloadLink>
+              </Button>
+
+              <Checkbox
+                checked={worksheetAnswers}
+                onCheckedChange={setWorksheetAnswers}
+              />
+              <FieldLabel>With Answers</FieldLabel>
+            </Field>
           </div>
 
           <ol>
