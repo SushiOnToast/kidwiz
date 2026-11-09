@@ -1,69 +1,135 @@
-import Image from "next/image";
+"use client";
+
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+  FieldError,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
+import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { generateWorksheet } from "@/lib/generateWorksheet";
+
+import { Question } from "@/lib/types";
+
+const METHODS = [
+  { label: "Select a method", value: null },
+  { label: "Addition", value: "addition" },
+  { label: "Subtraction", value: "subtraction" },
+  { label: "Multiplication", value: "multiplication" },
+  { label: "Division", value: "division" },
+];
 
 export default function Home() {
+  const [numQuestions, setNumQuestions] = useState<number>(12);
+  const [numRange, setNumRange] = useState([4, 12]);
+  const [method, setMethod] = useState<string | null>(null);
+  const [methodError, setMethodError] = useState(false);
+
+  const [questions, setQuestions] = useState<Question[]>();
+
+  const handleSubmit = () => {
+    if (!method) {
+      setMethodError(true);
+      return;
+    }
+
+    setQuestions(
+      generateWorksheet(numQuestions, numRange[0], numRange[1], method),
+    );
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <>
+      <h1>Generate Worksheet</h1>
+
+      {/* Options */}
+
+      <FieldGroup className="grid max-w-full grid-cols-3">
+        <Field>
+          <FieldLabel htmlFor="questions">Questions</FieldLabel>
+          <Input
+            id="questions"
+            type="number"
+            value={numQuestions}
+            onChange={(e) => {
+              setNumQuestions(Number(e.target.value));
+            }}
+            min={1}
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="num-range">Number Range</FieldLabel>
+          <span className="text-sm text-muted-foreground">
+            {numRange.join(" - ")}
+          </span>
+          <Slider
+            id="num-range"
+            value={numRange}
+            onValueChange={(value) => setNumRange(value as number[])}
+            min={0}
+            max={20}
+            step={1}
+          />
+        </Field>
+        <Field data-invalid={methodError}>
+          <FieldLabel htmlFor="method">Method</FieldLabel>
+          <Select
+            items={METHODS}
+            value={method}
+            onValueChange={(value) => {
+              setMethod(value);
+              setMethodError(false);
+            }}
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            <SelectTrigger
+              aria-invalid={methodError}
+              className="w-full max-w-48"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Method</SelectLabel>
+                {METHODS.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          {methodError && <FieldError>Please select a method.</FieldError>}
+        </Field>
+        <Field orientation="horizontal" onSubmit={handleSubmit}>
+          <Button type="submit" onClick={handleSubmit}>
+            Submit
+          </Button>
+        </Field>
+      </FieldGroup>
+
+      {/* Worksheet */}
+
+      <div>
+        <ol>
+          {questions?.map((question, num) => (
+            <li key={num}>
+              {num + 1}. {question.question} =
+            </li>
+          ))}
+        </ol>
+      </div>
+    </>
   );
 }
