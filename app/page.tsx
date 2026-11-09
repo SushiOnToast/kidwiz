@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { generateWorksheet } from "@/lib/generateWorksheet";
 
 import { Question } from "@/lib/types";
+import QuestionCard from "@/components/QuestionCard";
 
 const METHODS = [
   { label: "Select a method", value: null },
@@ -37,17 +38,17 @@ export default function Home() {
   const [method, setMethod] = useState<string | null>(null);
   const [methodError, setMethodError] = useState(false);
 
+  const [showAllAnswer, setShowAllAnswer] = useState(false);
   const [questions, setQuestions] = useState<Question[]>();
 
   const handleSubmit = () => {
     if (!method) {
       setMethodError(true);
-      return;
+    } else {
+      setQuestions(
+        generateWorksheet(numQuestions, numRange[0], numRange[1], method),
+      );
     }
-
-    setQuestions(
-      generateWorksheet(numQuestions, numRange[0], numRange[1], method),
-    );
   };
 
   return (
@@ -114,22 +115,33 @@ export default function Home() {
         </Field>
         <Field orientation="horizontal" onSubmit={handleSubmit}>
           <Button type="submit" onClick={handleSubmit}>
-            Submit
+            Generate Worksheet
           </Button>
         </Field>
       </FieldGroup>
 
       {/* Worksheet */}
+      {questions && (
+        <div>
+          <div>
+            <Button onClick={() => setShowAllAnswer(!showAllAnswer)}>
+              {showAllAnswer ? "Hide Answers" : "Show Answers"}
+            </Button>
+            <Button>Download Worksheet</Button>
+          </div>
 
-      <div>
-        <ol>
-          {questions?.map((question, num) => (
-            <li key={num}>
-              {num + 1}. {question.question} =
-            </li>
-          ))}
-        </ol>
-      </div>
+          <ol>
+            {questions?.map((question, num) => (
+              <QuestionCard
+                key={num}
+                num={num + 1}
+                question={question}
+                showAnswer={showAllAnswer}
+              />
+            ))}
+          </ol>
+        </div>
+      )}
     </>
   );
 }
