@@ -22,19 +22,25 @@ export function generateWorksheet(
 
   switch (method) {
     case "multiplication":
-        operation = generateMultiplication;
+      operation = generateMultiplication;
   }
 
   if (!operation) {
     throw new Error("Method invalid or not selected!!");
   }
 
-  for (let i = 1; i < questions + 1;) {
+  for (let i = 1; i < questions + 1; ) {
     const q = operation(min, max);
 
-    if (!ws.some((existing) => existing.question === q.question)) {
-        ws.push(q);
-        i++;
+    if (
+      !ws.some(
+        (existing) =>
+          existing.question === q.question ||
+          existing.question === [...q.question].reverse().join(""),
+      )
+    ) {
+      ws.push(q);
+      i++;
     }
   }
 
